@@ -51,7 +51,7 @@ async def dev_command(ctx):
 
 
 @dev_command.error
-async def secret_error(ctx, error):
+async def dev_command_error(ctx, error):
     if isinstance(error, commands.MissingRole):
         await ctx.send("Sorry, you do now have permission for this command")
 
@@ -68,6 +68,32 @@ async def start(ctx):
 async def start_error(ctx, error):
     if isinstance(error, commands.MissingRole):
         await ctx.send("Sorry, you need to be an mc member to start the server")
+
+
+@bot.command()
+async def join(ctx):
+    # TODO:Implement whitelist username addition
+    role = discord.utils.get(ctx.guild.roles, name=member_role)
+    if role:
+        await ctx.author.add_roles(role)
+        await ctx.send(f"{ctx.author.mention} is now assigned to {member_role}")
+    else:
+        await ctx.send(
+            "Role doesn't exist, please ask your sever admin to add the 'MC' role"
+        )
+
+
+@bot.command()
+async def leave(ctx):
+    # TODO:Implement whitelist username removal
+    role = discord.utils.get(ctx.guild.roles, name=f"{member_role}")
+    if role:
+        await ctx.author.remove_roles(role)
+        await ctx.send(
+            f"{ctx.author.mention} has stopped being an {member_role} member"
+        )
+    else:
+        await ctx.send("Role doesn't exist")
 
 
 # @bot.command()
