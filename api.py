@@ -36,7 +36,7 @@ class PterodactylWS:
         jwt_token = data["token"]
 
         print(f"Websocket URL: {socket_url}")
-        print(f"JWT Token: {jwt_token}")
+        print(f"JWT Token: {jwt_token[:10]}")
 
         return socket_url, jwt_token
 
@@ -48,21 +48,24 @@ class PterodactylWS:
             "Origin": f"{BASE_URL}",
         }
 
-        async with websockets.connect(
+        self.ws = await websockets.connect(
             socket_url, additional_headers=additional_headers
-        ) as websocket:
-            print("Websocket Connection Established.")
+        )
+        print("Websocket Connection Established.")
 
-            # Authenticate
-            auth_message = {
-                "event": "auth",
-                "args": [token],
-            }
-            await websocket.send(json.dumps(auth_message))
+    # Authenticate
+    async def authenticate(self, token):
+        auth_message = {
+            "event": "auth",
+            "args": [token],
+        }
+        await self.ws.send(json.dumps(auth_message))
 
-            # Listen for messages
-            async for message in websocket:
-                data = json.loads(message)
+    # Listen for messages
+    async def consume(self):
+        async for message in self.ws:
+            data = json.loads(message)
+            # TODO:Handle Output
             print("Received:", data)
 
 
