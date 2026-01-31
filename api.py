@@ -18,7 +18,27 @@ class PterodactylWS:
         self.origin = None
         self.ws = None
         self.queue = asyncio.Queue()
-        self.task = None
+        # self.task = None
+
+    def run(self):
+        while True:
+            try:
+                await self.connect()
+
+                consumer = asyncio.create_task(self.produce())
+                producer = None
+
+                done, pending = await asyncio.wait(
+                    [consumer, producer],
+                    return_when=asyncio.FIRST_EXCEPTION,
+                )
+
+                for task in pending:
+                    task.cancel()
+
+            except Exception as e:
+                print("WS Error: ", e)
+                await asyncio.sleep(5)
 
     def get_jwt(self):
         headers = {
@@ -51,6 +71,9 @@ class PterodactylWS:
         self.ws = await websockets.connect(
             socket_url, additional_headers=additional_headers
         )
+
+        await self.authenticate(token)
+
         print("Websocket Connection Established.")
 
     # Authenticate
