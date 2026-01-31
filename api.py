@@ -14,19 +14,17 @@ API_KEY = os.getenv("API_KEY")
 
 class PterodactylWS:
     def __init__(self):
-        self.ws_url = None
-        self.origin = None
         self.ws = None
         self.queue = asyncio.Queue()
         # self.task = None
 
-    def run(self):
+    async def run(self):
         while True:
             try:
                 await self.connect()
 
-                consumer = asyncio.create_task(self.produce())
-                producer = None
+                consumer = asyncio.create_task(self.consume())
+                producer = asyncio.create_task(self.produce())
 
                 done, pending = await asyncio.wait(
                     [consumer, producer],
@@ -91,7 +89,12 @@ class PterodactylWS:
             # TODO:Handle Output
             print("Received:", data)
 
+    async def produce(self):
+        message = await self.queue.get()
+        await self.ws.send(json.dumps(message))
+
 
 # May not be necessary
-# if __name__ == "__main__":
-#    pterows_instance = PterodactylWS()
+if __name__ == "__main__":
+    pterows_instance = PterodactylWS()
+    asyncio.run(pterows_instance.run())
