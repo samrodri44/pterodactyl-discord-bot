@@ -95,6 +95,12 @@ class PterodactylWS:
         async for message in self.ws:
             data = json.loads(message)
             # TODO:Handle Output
+            event = data["event"]
+            if (
+                event == "jwt error"
+            ):  # If token expires, refresh; temporary fix. TODO:Only refresh when sending a request
+                _, token = await self.get_jwt()
+                await self.authenticate(token)
             print("Received:", data)
 
     # Send messages
