@@ -18,6 +18,7 @@ class PterodactylWS:
         self.queue = asyncio.Queue()
         # self.task = None
 
+    # Run the daemon
     async def run(self):
         while True:
             try:
@@ -38,6 +39,7 @@ class PterodactylWS:
                 print("WS Error: ", e)
                 await asyncio.sleep(5)
 
+    # Get JWT token and WSS url from the panel
     def get_jwt(self):
         headers = {
             "Authorization": f"Bearer {API_KEY}",
@@ -58,6 +60,7 @@ class PterodactylWS:
 
         return socket_url, jwt_token
 
+    # Connect to the websocket
     async def connect(self):
         socket_url, token = self.get_jwt()
 
@@ -89,12 +92,21 @@ class PterodactylWS:
             # TODO:Handle Output
             print("Received:", data)
 
+    # Send messages
     async def produce(self):
         message = await self.queue.get()
         await self.ws.send(json.dumps(message))
 
+    # Start the server
+    async def start(self):
+        start = {
+            "event": "send command",
+            "args": ["start"],
+        }
+        await self.ws.send(json.dumps(start))
 
-# May not be necessary
+
+# For testing
 if __name__ == "__main__":
     pterows_instance = PterodactylWS()
     asyncio.run(pterows_instance.run())
