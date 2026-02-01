@@ -5,6 +5,8 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
+from api import PterodactylWS
+
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
 dev = os.getenv("DEVELOPER")
@@ -16,10 +18,12 @@ intents.message_content = True
 intents.members = True
 
 bot = commands.Bot(command_prefix="mc!", intents=intents)
+ws_manager = PterodactylWS()
 
 
 @bot.event
 async def on_ready():
+    bot.loop.create_task(ws_manager.run())
     print(f"We are ready to go in, {bot.user.name}")
 
 
@@ -39,6 +43,7 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
+# Commands
 @bot.command()
 async def hello(ctx):
     await ctx.send(f"Hello {ctx.author.mention}!")
@@ -60,7 +65,7 @@ async def dev_command_error(ctx, error):
 @commands.has_role(member_role)
 async def start(ctx):
     # TODO: Implement
-
+    await ws_manager.start()
     await ctx.send("Server is starting...")
 
 
@@ -68,6 +73,19 @@ async def start(ctx):
 async def start_error(ctx, error):
     if isinstance(error, commands.MissingRole):
         await ctx.send("Sorry, you need to be an mc member to start the server")
+
+
+@bot.command()
+@commands.has_role(member_role)
+async def stop(ctx):
+    # TODO:Implement
+    await ctx.send("Server is stopping...")
+
+
+@stop.error
+async def stop_error(ctx, error):
+    if isinstance(error, commands.MissingRole):
+        await ctx.send("Sorry, you need to be an mc member to stop the server")
 
 
 @bot.command()

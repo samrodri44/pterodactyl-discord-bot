@@ -24,6 +24,11 @@ class PterodactylWS:
             try:
                 await self.connect()
 
+                # temporary fix, #TODO:Implement retries and re-authentication
+                # asyncio.sleep(5)
+
+                # await self.start()
+
                 consumer = asyncio.create_task(self.consume())
                 producer = asyncio.create_task(self.produce())
 
@@ -100,10 +105,11 @@ class PterodactylWS:
     # Start the server
     async def start(self):
         start = {
-            "event": "send command",
+            "event": "set state",
             "args": ["start"],
         }
         await self.ws.send(json.dumps(start))
+        print("Sending start command...")
 
 
 # For testing
