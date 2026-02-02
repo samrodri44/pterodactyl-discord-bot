@@ -22,10 +22,14 @@ bot = commands.Bot(command_prefix=f"{prefix}", intents=intents)
 ws_manager = PterodactylWS()
 
 
+# Start the ws_daemon
 @bot.event
 async def on_ready():
     bot.loop.create_task(ws_manager.run())
     print(f"We are ready to go in, {bot.user.name}")
+
+
+# EVENTS:
 
 
 @bot.event
@@ -44,13 +48,19 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
-# Commands
-@bot.command()
+# COMMANDS:
+#
+# Say Hello
+@bot.command(help="Say hello")
 async def hello(ctx):
     await ctx.send(f"Hello {ctx.author.mention}!")
 
 
-@bot.command()
+# ------------------------------------------------
+
+
+# Dev command, only for developer
+@bot.command(help="You should'nt see this if you are not me")
 @commands.has_role(dev)
 async def dev_command(ctx):
     await ctx.send("Welcome back Mr. Stark")
@@ -62,7 +72,11 @@ async def dev_command_error(ctx, error):
         await ctx.send("Sorry, you do now have permission for this command")
 
 
-@bot.command()
+# ------------------------------------------------
+
+
+# Start the server
+@bot.command(help="Start the server")
 @commands.has_role(member_role)
 async def start(ctx):
     # TODO: Implement
@@ -76,7 +90,11 @@ async def start_error(ctx, error):
         await ctx.send("Sorry, you need to be an mc member to start the server")
 
 
-@bot.command()
+# ------------------------------------------------
+
+
+# Stop the server
+@bot.command(help="Stop the server")
 @commands.has_role(member_role)
 async def stop(ctx):
     # TODO:Implement
@@ -89,7 +107,11 @@ async def stop_error(ctx, error):
         await ctx.send("Sorry, you need to be an mc member to stop the server")
 
 
-@bot.command()
+# ------------------------------------------------
+
+
+# Join as a member
+@bot.command(help="Join as a member")
 async def join(ctx):
     # TODO:Implement whitelist username addition
     role = discord.utils.get(ctx.guild.roles, name=member_role)
@@ -102,7 +124,11 @@ async def join(ctx):
         )
 
 
-@bot.command()
+# ------------------------------------------------
+
+
+# Resign membership
+@bot.command(help="Resign membership")
 async def leave(ctx):
     # TODO:Implement whitelist username removal
     role = discord.utils.get(ctx.guild.roles, name=f"{member_role}")
@@ -113,12 +139,6 @@ async def leave(ctx):
         )
     else:
         await ctx.send("Role doesn't exist")
-
-
-# @bot.command()
-# async def help(ctx):
-#    # TODO: Implement
-#    await ctx.send("Right now, you can only start the server")
 
 
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
