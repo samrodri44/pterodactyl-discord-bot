@@ -12,6 +12,8 @@ token = os.getenv("DISCORD_TOKEN")
 dev = os.getenv("DEVELOPER")
 member_role = os.getenv("MEMBER_ROLE")
 prefix = os.getenv("PREFIX")
+mc_address = os.getenv("MC_ADDRESS")
+mc_seed = f"{os.getenv('MC_SEED')}"
 
 handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
 intents = discord.Intents.default()
@@ -60,9 +62,11 @@ async def hello(ctx):
 
 
 # Dev command, only for developer
-@bot.command(help="You should'nt see this if you are not me")
+@bot.command(help="You shouldn't see this if you are not me")
 @commands.has_role(dev)
 async def dev_command(ctx):
+    print(f"{ctx.author.name}")
+    print(f"{ctx.author}")
     await ctx.send("Welcome back Mr. Stark")
 
 
@@ -122,6 +126,31 @@ async def join(ctx):
         await ctx.send(
             "Role doesn't exist, please ask your sever admin to add the 'MC' role"
         )
+
+
+# ------------------------------------------------
+
+
+# Display the server address
+@bot.command(help="Display server address (in development)")
+async def address(ctx):
+    if mc_address:
+        await ctx.send(f"The server address is: {mc_address}", delete_after=30)
+        await ctx.send("Guard it well.", delete_after=30)
+    else:
+        await ctx.send("Sorry, I don't know the address ¯\_(ツ)_/¯")
+
+
+# ------------------------------------------------
+
+
+# Display the server seed
+@bot.command(help="Display the server seed (in development)")
+async def seed(ctx):
+    if mc_seed:
+        await ctx.send(f"The server seed is: {mc_seed}.", delete_after=30)
+    else:
+        await ctx.send("Sorry, I don't know the address ¯\_(ツ)_/¯")
 
 
 # ------------------------------------------------
