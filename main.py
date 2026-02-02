@@ -94,7 +94,7 @@ async def start_error(ctx, error):
 
 
 # Stop the server
-@bot.command(help="Stop the server")
+@bot.command(help="Stop the server (Not implemented)")
 @commands.has_role(member_role)
 async def stop(ctx):
     # TODO:Implement
