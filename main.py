@@ -132,7 +132,7 @@ async def join(ctx):
 
 
 # Display the server address
-@bot.command(help="Display server address (in development)")
+@bot.command(help="Display server address")
 async def address(ctx):
     if mc_address:
         await ctx.send(f"The server address is: {mc_address}", delete_after=30)
@@ -145,7 +145,7 @@ async def address(ctx):
 
 
 # Display the server seed
-@bot.command(help="Display the server seed (in development)")
+@bot.command(help="Display the server seed")
 async def seed(ctx):
     if mc_seed:
         await ctx.send(f"The server seed is: {mc_seed}.", delete_after=30)
