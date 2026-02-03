@@ -138,7 +138,8 @@ async def address(ctx):
         await ctx.send(f"The server address is: {mc_address}", delete_after=30)
         await ctx.send("Guard it well.", delete_after=30)
     else:
-        await ctx.send("Sorry, I don't know the address ¯\_(ツ)_/¯")
+        # await ctx.send("Sorry, I don't know the address ¯\_(ツ)_/¯")
+        await ctx.send("Sorry, I don't know the address")
 
 
 # ------------------------------------------------
