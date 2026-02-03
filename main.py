@@ -151,7 +151,8 @@ async def seed(ctx):
     if mc_seed:
         await ctx.send(f"The server seed is: {mc_seed}.", delete_after=30)
     else:
-        await ctx.send("Sorry, I don't know the address ¯\_(ツ)_/¯")
+        # await ctx.send("Sorry, I don't know the address ¯\_(ツ)_/¯")
+        await ctx.send("Sorry, I don't know the address")
 
 
 # ------------------------------------------------
