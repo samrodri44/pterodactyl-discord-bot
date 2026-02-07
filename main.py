@@ -14,6 +14,7 @@ member_role = os.getenv("MEMBER_ROLE")
 prefix = os.getenv("PREFIX")
 mc_address = os.getenv("MC_ADDRESS")
 mc_seed = f"{os.getenv('MC_SEED')}"
+dev_id = f"{os.getenv('DEV_ID')}"
 
 handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
 intents = discord.Intents.default()
@@ -102,7 +103,13 @@ async def start_error(ctx, error):
 @commands.has_role(member_role)
 async def stop(ctx):
     # TODO:Implement
-    await ctx.send("Server is stopping...")
+    # Get me and send message for me to close the server
+    me = ctx.guild.get_member_named(dev)
+    print(f"The dev is {me}")
+    await ctx.send(
+        f"{me.mention}! Please close the server! And implement this feature while you're at it!"
+    )
+    await me.send(f"{prefix}stop")
 
 
 @stop.error
