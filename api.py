@@ -100,11 +100,6 @@ class PterodactylWS:
             # TODO:Handle Output
             event = data["event"]
             args = None
-            if event != "auth success":
-                try:
-                    args = data["args"]
-                except Exception as e:
-                    print("The error is", e)
 
             if (
                 event == "token expiring"
@@ -116,11 +111,12 @@ class PterodactylWS:
                 print()
                 _, token = await self.get_jwt()
                 await self.authenticate(token)
-            # print("Received:", data)
-            if args:
+
+            try:
+                args = data["args"]
                 print(f"Received: Event: {event} Args: {args}")
-            else:
-                print(f"Received: Event: {event}")
+            except Exception:
+                print(f"Received: Event: {event} Args: None")
 
     # Send messages
     async def produce(self):
