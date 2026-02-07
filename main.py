@@ -14,7 +14,6 @@ member_role = os.getenv("MEMBER_ROLE")
 prefix = os.getenv("PREFIX")
 mc_address = os.getenv("MC_ADDRESS")
 mc_seed = f"{os.getenv('MC_SEED')}"
-dev_id = f"{os.getenv('DEV_ID')}"
 
 handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
 intents = discord.Intents.default()

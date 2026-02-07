@@ -61,7 +61,10 @@ class PterodactylWS:
         jwt_token = data["token"]
 
         print(f"Websocket URL: {socket_url}")
-        print(f"JWT Token: {jwt_token[:10]}")
+        if jwt_token:
+            print("JWT Token received")
+        else:
+            print("There's been an error, the jwt token was not retrieved")
 
         return socket_url, jwt_token
 
@@ -96,12 +99,28 @@ class PterodactylWS:
             data = json.loads(message)
             # TODO:Handle Output
             event = data["event"]
+            args = None
+            if event != "auth success":
+                try:
+                    args = data["args"]
+                except Exception as e:
+                    print("The error is", e)
+
             if (
-                event == "jwt error"
+                event == "token expiring"
+                or event == "jwt error"
+                or event == "token expired"
             ):  # If token expires, refresh; temporary fix. TODO:Only refresh when sending a request
+                print()
+                print("YO LOOK OVER HERE")
+                print()
                 _, token = await self.get_jwt()
                 await self.authenticate(token)
-            print("Received:", data)
+            # print("Received:", data)
+            if args:
+                print(f"Received: Event: {event} Args: {args}")
+            else:
+                print(f"Received: Event: {event}")
 
     # Send messages
     async def produce(self):
