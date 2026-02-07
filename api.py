@@ -99,7 +99,6 @@ class PterodactylWS:
             data = json.loads(message)
             # TODO:Handle Output
             event = data["event"]
-            args = None
 
             if (
                 event == "token expiring"
@@ -113,10 +112,29 @@ class PterodactylWS:
                 await self.authenticate(token)
 
             try:
-                args = data["args"]
-                print(f"Received: Event: {event} Args: {args}")
-            except Exception:
-                print(f"Received: Event: {event} Args: None")
+                if event == "stats":
+                    args = json.loads(data["args"][0])
+                    print(
+                        "Stats: ",
+                        f"CPU: {round(args['cpu_absolute'], 2)}% ",
+                        f"Disk: {round(args['disk_bytes'] / 1000000, 2)}Mib ",
+                        f"RAM: {round(args['memory_bytes'] / 1000000, 2)}Mib ",
+                        # f"RAM_Limit: {
+                        #    round(args['memory_limit_bytes'] / 1000000, 2)
+                        # }MiB ",
+                        f"Receive: {round(args['network']['rx_bytes'] / 1000, 2)}KiB ",
+                        f"Transmit: {round(args['network']['tx_bytes'] / 1000, 2)}KiB ",
+                        f"State: {args['state']} ",
+                        f"Uptime: {round(args['uptime'] / 1000)}s",
+                    )
+                elif event == "console output":
+                    args = data["args"][0]
+                    print(args)
+                else:
+                    args = data["args"][0]
+                    print(f"Received: Event: {event} Args: {args}")
+            except Exception as e:
+                print(f"Received: Event: {event} Args: No {e}")
 
     # Send messages
     async def produce(self):
