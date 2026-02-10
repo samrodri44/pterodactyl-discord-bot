@@ -119,6 +119,28 @@ async def stop_error(ctx, error):
 # ------------------------------------------------
 
 
+# Display server status
+@bot.command(help="Display the server status")
+@commands.has_role(member_role)
+async def status(ctx):
+    status = ws_manager.snapshot.status
+    if status == "running":
+        await ctx.send("The server is online ✅")
+    elif status == "offline":
+        await ctx.send("The server is offline 🔴")
+    else:
+        await ctx.send("Unknown Status")
+
+
+@status.error
+async def status_error(ctx, error):
+    if isinstance(error, commands.MissingRole):
+        await ctx.send("Sorry, you need to be an mc member to use this command")
+
+
+# ------------------------------------------------
+
+
 # Join as a member
 @bot.command(help="Join as a member")
 async def join(ctx):
@@ -129,7 +151,9 @@ async def join(ctx):
         await ctx.send(f"{ctx.author.mention} is now assigned to {member_role}")
     else:
         await ctx.send(
-            "Role doesn't exist, please ask your sever admin to add the 'MC' role"
+            f"Role doesn't exist, please ask your sever admin to add the '{
+                member_role
+            }' role"
         )
 
 
@@ -177,4 +201,7 @@ async def leave(ctx):
         await ctx.send("Role doesn't exist")
 
 
+bot.run(token, log_handler=handler, log_level=logging.DEBUG)
+bot.run(token, log_handler=handler, log_level=logging.DEBUG)
+bot.run(token, log_handler=handler, log_level=logging.DEBUG)
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
