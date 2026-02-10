@@ -6,6 +6,8 @@ import requests
 import websockets
 from dotenv import load_dotenv
 
+from snapshot import Snapshot
+
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL_PANEL")
 SERVER_ID = os.getenv("SERVER")
@@ -17,6 +19,7 @@ class PterodactylWS:
         self.ws = None
         self.queue = asyncio.Queue()
         # self.task = None
+        self.snapshot = Snapshot()
 
     # Run the daemon
     async def run(self):
@@ -97,23 +100,26 @@ class PterodactylWS:
     async def consume(self):
         async for message in self.ws:
             data = json.loads(message)
-            # TODO:Handle Output
             event = data["event"]
 
+            # Handle jwt related messages
             if (
                 event == "token expiring"
                 or event == "jwt error"
                 or event == "token expired"
-            ):  # If token expires, refresh; temporary fix. TODO:Only refresh when sending a request
+            ):  # If token expires, refresh
                 print()
                 print("YO LOOK OVER HERE")
                 print()
                 _, token = await self.get_jwt()
                 await self.authenticate(token)
 
+            # Handle each type of mesage
             try:
                 if event == "stats":
                     args = json.loads(data["args"][0])
+                    self.snapshot.status = args["state"]
+                    self.snapshot.uptime = args["uptime"]
                     print(
                         "Stats: ",
                         f"CPU: {round(args['cpu_absolute'], 2)}% ",

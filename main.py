@@ -65,9 +65,8 @@ async def hello(ctx):
 @bot.command(help="You shouldn't see this if you are not me")
 @commands.has_role(dev)
 async def dev_command(ctx):
-    print(f"{ctx.author.name}")
-    print(f"{ctx.author}")
-    await ctx.send("Welcome back Mr. Stark")
+    print(f"Dev command called, the author is {ctx.author.name}")
+    await ctx.send(f"Welcome back Mr. Stark {ws_manager.snapshot}")
 
 
 @dev_command.error
