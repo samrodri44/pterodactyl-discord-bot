@@ -45,6 +45,7 @@ class PterodactylWS:
 
             except Exception as e:
                 print("WS Error: ", e)
+                self.snapshot.ws_connected = False
                 await asyncio.sleep(5)
 
     # Get JWT token and WSS url from the panel
@@ -86,6 +87,7 @@ class PterodactylWS:
 
         await self.authenticate(token)
 
+        self.snapshot.ws_connected = True
         print("Websocket Connection Established.")
 
     # Authenticate
