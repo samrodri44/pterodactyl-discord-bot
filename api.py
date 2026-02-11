@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+from datetime import datetime
 
 import requests
 import websockets
@@ -26,11 +27,6 @@ class PterodactylWS:
         while True:
             try:
                 await self.connect()
-
-                # temporary fix, #TODO:Implement retries and re-authentication
-                # asyncio.sleep(5)
-
-                # await self.start()
 
                 consumer = asyncio.create_task(self.consume())
                 producer = asyncio.create_task(self.produce())
@@ -141,8 +137,19 @@ class PterodactylWS:
                 else:
                     args = data["args"][0]
                     print(f"Received: Event: {event} Args: {args}")
+
+                self.snapshot.last_update = datetime.now()
             except Exception as e:
-                print(f"Received: Event: {event} Args: No {e}")
+                if (
+                    event == "token expiring"
+                    or event == "jwt error"
+                    or event == "token expired"
+                    or event == "auth success"
+                ):
+                    print("Received: Event: ", event)
+                else:
+                    print(f"Received: Event: {event} Args: No {e}")
+                self.snapshot.last_update = datetime.now()
 
     # Send messages
     async def produce(self):
