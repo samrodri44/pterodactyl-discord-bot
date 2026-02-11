@@ -120,7 +120,7 @@ async def stop_error(ctx, error):
 
 
 # Display server status
-@bot.command(help="Display the server status")
+@bot.command(help="Display the server status (under development)")
 @commands.has_role(member_role)
 async def status(ctx):
     status = ws_manager.snapshot.status
@@ -134,6 +134,22 @@ async def status(ctx):
 
 @status.error
 async def status_error(ctx, error):
+    if isinstance(error, commands.MissingRole):
+        await ctx.send("Sorry, you need to be an mc member to use this command")
+
+
+# ------------------------------------------------
+
+
+# Display player count
+@bot.command(help="Display player count of the server (under development)")
+@commands.has_role(member_role)
+async def players(ctx):
+    await ctx.send(f"There are {ws_manager.snapshot.player_count} players online")
+
+
+@players.error
+async def players_error(ctx, error):
     if isinstance(error, commands.MissingRole):
         await ctx.send("Sorry, you need to be an mc member to use this command")
 
@@ -201,7 +217,4 @@ async def leave(ctx):
         await ctx.send("Role doesn't exist")
 
 
-bot.run(token, log_handler=handler, log_level=logging.DEBUG)
-bot.run(token, log_handler=handler, log_level=logging.DEBUG)
-bot.run(token, log_handler=handler, log_level=logging.DEBUG)
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
