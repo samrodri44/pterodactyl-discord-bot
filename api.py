@@ -137,13 +137,15 @@ class PterodactylWS:
                     # TODO:Handle output
                     # Player connected:
                     # Player disconnected:
-                    # There are x/xx players online:
+                    # There are xx/xx players online:
                     if len(args) >= 30:
                         if args[25:30] == "INFO]":
                             if "Player connected:" in args:
                                 print("Player connected")
+                                self.list_players()
                             elif "Player disconnected:" in args:
                                 print("Player disconnected:")
+                                self.list_players()
                             elif "There are " in args and "players online:" in args:
                                 content, _ = args[41:46].split(" ")
                                 players, max_players = content.split("/")
@@ -192,8 +194,23 @@ class PterodactylWS:
             "event": "set state",
             "args": ["start"],
         }
-        await self.ws.send(json.dumps(start))
+        await self.ws.send(start)
         print("Sending start command...")
+
+    # Stop the server
+    async def stop(self):
+        stop = {
+            "event": "set state",
+            "args": ["stop"],
+        }
+        await self.queue.put(stop)
+
+    async def list_players(self):
+        command = {
+            "event": "send command",
+            "args": ["list"],
+        }
+        await self.queue.put(command)
 
 
 # For testing
