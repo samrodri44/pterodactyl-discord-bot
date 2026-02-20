@@ -140,12 +140,12 @@ class PterodactylWS:
                     # There are xx/xx players online:
                     if len(args) >= 30:
                         if args[25:30] == "INFO]":
-                            if "Player connected:" in args:
+                            if "Player Spawned:" in args:
                                 print("Player connected")
-                                self.list_players()
+                                await self.list_players()
                             elif "Player disconnected:" in args:
                                 print("Player disconnected:")
-                                self.list_players()
+                                await self.list_players()
                             elif "There are " in args and "players online:" in args:
                                 content, _ = args[41:46].split(" ")
                                 players, max_players = content.split("/")
@@ -165,6 +165,8 @@ class PterodactylWS:
                     if args == "offline":
                         self.snapshot.player_count = 0
                         self.snapshot.uptime = 0
+                    elif args == "running":
+                        await self.list_players()
                     print("Server is now", args)
                 else:
                     args = data["args"][0]
@@ -185,8 +187,10 @@ class PterodactylWS:
 
     # Send messages
     async def produce(self):
-        message = await self.queue.get()
-        await self.ws.send(json.dumps(message))
+        while True:
+            message = await self.queue.get()
+            print(f"Sending message with event: {message['event']}.")
+            await self.ws.send(json.dumps(message))
 
     # Start the server
     async def start(self):
@@ -194,22 +198,28 @@ class PterodactylWS:
             "event": "set state",
             "args": ["start"],
         }
-        await self.ws.send(start)
+        await self.queue.put(start)
         print("Sending start command...")
 
     # Stop the server
     async def stop(self):
+        if self.snapshot.player_count != 0:
+            return False
+
         stop = {
             "event": "set state",
             "args": ["stop"],
         }
         await self.queue.put(stop)
 
+        return True
+
     async def list_players(self):
         command = {
             "event": "send command",
             "args": ["list"],
         }
+        print("Queueing list command")
         await self.queue.put(command)
 
 

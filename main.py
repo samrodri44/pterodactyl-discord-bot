@@ -66,7 +66,8 @@ async def hello(ctx):
 @commands.has_role(dev)
 async def dev_command(ctx):
     print(f"Dev command called, the author is {ctx.author.name}")
-    await ctx.send(f"Welcome back Mr. Stark {ws_manager.snapshot}")
+    await ctx.send("Welcome back Mr. Stark")
+    await ctx.send(ws_manager.queue.qsize())
 
 
 @dev_command.error
@@ -100,14 +101,22 @@ async def start_error(ctx, error):
 @bot.command(help="Stop the server (Not implemented)")
 @commands.has_role(member_role)
 async def stop(ctx):
+    sent = await ws_manager.stop()
+
+    if sent:
+        await ctx.send("Sent stop signal")
+    else:
+        await ctx.send("There's at least one player connected")
     # TODO:Implement
     # Get me and send message for me to close the server
+    """
     me = ctx.guild.get_member_named(dev)
     print(f"The dev is {me}")
     await ctx.send(
         f"{me.mention}! Please close the server! And implement this feature while you're at it!"
     )
     await me.send(f"{prefix}stop")
+    """
 
 
 @stop.error
