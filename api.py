@@ -100,20 +100,21 @@ class PterodactylWS:
             data = json.loads(message)
             event = data["event"]
 
-            # Handle jwt related messages
-            if (
-                event == "token expiring"
-                or event == "jwt error"
-                or event == "token expired"
-            ):  # If token expires, refresh
-                print()
-                print("YO LOOK OVER HERE")
-                print()
-                _, token = await self.get_jwt()
-                await self.authenticate(token)
-
             # Handle each type of mesage
             try:
+                # Handle jwt related messages
+                if (
+                    event == "token expiring"
+                    or event == "jwt error"
+                    or event == "token expired"
+                ):  # If token expires, refresh
+                    print("Received: Event: ", event)
+                    print()
+                    print("YO LOOK OVER HERE")
+                    print()
+                    _, token = await self.get_jwt()
+                    await self.authenticate(token)
+
                 if event == "stats":
                     args = json.loads(data["args"][0])
                     self.snapshot.status = args["state"]
@@ -138,27 +139,22 @@ class PterodactylWS:
                     # Player connected:
                     # Player disconnected:
                     # There are xx/xx players online:
-                    if len(args) >= 30:
-                        if args[25:30] == "INFO]":
-                            if "Player Spawned:" in args:
-                                print("Player connected")
-                                await self.list_players()
-                            elif "Player disconnected:" in args:
-                                print("Player disconnected:")
-                                await self.list_players()
-                            elif "There are " in args and "players online:" in args:
-                                content, _ = args[41:46].split(" ")
-                                players, max_players = content.split("/")
-                                self.snapshot.player_count = int(players)
-                                print(
-                                    f"{self.snapshot.player_count} players online. Max {
-                                        int(max_players)
-                                    }."
-                                )
-                            else:
-                                print()
-
+                    if len(args) >= 30 and args[25:30] == "INFO]":
+                        if "Player Spawned:" in args or "Player disconnected:" in args:
+                            print("Player Count Changed")
+                            asyncio.sleep(1)
+                            await self.list_players()
+                        elif "There are " in args and "players online:" in args:
+                            content, _ = args[41:46].split(" ")
+                            players, max_players = content.split("/")
+                            self.snapshot.player_count = int(players)
+                            print(
+                                f"{self.snapshot.player_count} players online. Max {
+                                    int(max_players)
+                                }."
+                            )
                     print(args)
+
                 elif event == "status":
                     args = data["args"][0]
                     self.snapshot.status = args
@@ -168,21 +164,15 @@ class PterodactylWS:
                     elif args == "running":
                         await self.list_players()
                     print("Server is now", args)
+                elif event == "auth success":
+                    print("Received: Event: {event}")
                 else:
                     args = data["args"][0]
                     print(f"Received: Event: {event} Args: {args}")
 
                 self.snapshot.last_update = datetime.now()
             except Exception as e:
-                if (
-                    event == "token expiring"
-                    or event == "jwt error"
-                    or event == "token expired"
-                    or event == "auth success"
-                ):
-                    print("Received: Event: ", event)
-                else:
-                    print(f"Received: Event: {event} Args: No {e}")
+                print(f"Event: {event} Error: {e}")
                 self.snapshot.last_update = datetime.now()
 
     # Send messages
