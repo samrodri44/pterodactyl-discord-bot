@@ -51,16 +51,15 @@ class PterodactylWS:
             "Accept": "Application/vnd.pterodactyl.v1+json",
         }
 
+        print("Requesting new JWT token")
         response = requests.get(
             f"{BASE_URL}/api/client/servers/{SERVER_ID}/websocket", headers=headers
         )
 
-        print(response)
         data = response.json()["data"]
         socket_url = data["socket"]
         jwt_token = data["token"]
 
-        print(f"Websocket URL: {socket_url}")
         if jwt_token:
             print("JWT Token received")
         else:
@@ -92,6 +91,7 @@ class PterodactylWS:
             "event": "auth",
             "args": [token],
         }
+        print("Sending authentication message")
         await self.ws.send(json.dumps(auth_message))
 
     # Listen for messages
@@ -102,19 +102,6 @@ class PterodactylWS:
 
             # Handle each type of mesage
             try:
-                # Handle jwt related messages
-                if (
-                    event == "token expiring"
-                    or event == "jwt error"
-                    or event == "token expired"
-                ):  # If token expires, refresh
-                    print("Received: Event: ", event)
-                    print()
-                    print("YO LOOK OVER HERE")
-                    print()
-                    _, token = await self.get_jwt()
-                    await self.authenticate(token)
-
                 if event == "stats":
                     args = json.loads(data["args"][0])
                     self.snapshot.status = args["state"]
@@ -124,9 +111,6 @@ class PterodactylWS:
                         f"CPU: {round(args['cpu_absolute'], 2)}% ",
                         f"Disk: {round(args['disk_bytes'] / 1000000, 2)}Mib ",
                         f"RAM: {round(args['memory_bytes'] / 1000000, 2)}Mib ",
-                        # f"RAM_Limit: {
-                        #    round(args['memory_limit_bytes'] / 1000000, 2)
-                        # }MiB ",
                         f"Receive: {round(args['network']['rx_bytes'] / 1000, 2)}KiB ",
                         f"Transmit: {round(args['network']['tx_bytes'] / 1000, 2)}KiB ",
                         f"State: {args['state']} ",
@@ -134,6 +118,8 @@ class PterodactylWS:
                     )
                 elif event == "console output":
                     args = data["args"][0]
+
+                    print(args)
 
                     # TODO:Handle output
                     # Player connected:
@@ -153,8 +139,6 @@ class PterodactylWS:
                                     int(max_players)
                                 }."
                             )
-                    print(args)
-
                 elif event == "status":
                     args = data["args"][0]
                     self.snapshot.status = args
@@ -165,7 +149,16 @@ class PterodactylWS:
                         await self.list_players()
                     print("Server is now", args)
                 elif event == "auth success":
-                    print("Received: Event: {event}")
+                    print("Authentication Successful")
+                # Handle jwt related messages
+                elif (
+                    event == "token expiring"
+                    or event == "jwt error"
+                    or event == "token expired"
+                ):  # If token expires, refresh
+                    print("Received: Event: ", event)
+                    _, token = self.get_jwt()
+                    await self.authenticate(token)
                 else:
                     args = data["args"][0]
                     print(f"Received: Event: {event} Args: {args}")
@@ -189,7 +182,7 @@ class PterodactylWS:
             "args": ["start"],
         }
         await self.queue.put(start)
-        print("Sending start command...")
+        print("Queueing start command...")
 
     # Stop the server
     async def stop(self):
@@ -201,6 +194,7 @@ class PterodactylWS:
             "args": ["stop"],
         }
         await self.queue.put(stop)
+        print("Queueing start command...")
 
         return True
 
