@@ -1,0 +1,24 @@
+#trigger
+#
+#runner
+#
+#permissions
+#
+#checkout repo
+#
+#auth to GHCR
+#
+#build image
+#
+#tag
+#1 latest
+#2 commit sha
+#
+#push to GHCR
+#
+#deploy
+#
+#deploy commands
+#docker pull
+#docker compose -d --force-recreate
+#

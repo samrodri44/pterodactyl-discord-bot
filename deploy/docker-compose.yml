@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  discord-bot:
+    image: discord-bot/latest
+    container_name: discord-ptero-bot
+    restart: unless-stopped
+    env_file:
+      - .env
