@@ -1,4 +1,12 @@
 .env
+.env.*
 env/
-discord.log
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+docker-data/
+.DS_Store
+Thumbs.db
+pyproject.toml
