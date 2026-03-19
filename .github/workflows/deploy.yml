@@ -1,24 +1,60 @@
+name: Deploy Project
+
 #trigger
-#
-#runner
-#
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+
 #permissions
-#
-#checkout repo
-#
-#auth to GHCR
-#
-#build image
-#
-#tag
-#1 latest
-#2 commit sha
-#
-#push to GHCR
-#
-#deploy
-#
-#deploy commands
-#docker pull
-#docker compose -d --force-recreate
-#
+permissions:
+  contents: read
+  packages: write
+
+#runner
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Get metadata (tags)
+        id: meta
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository }}
+          echo "image=$IMAGE_NAME" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Build Image
+        run: |
+          docker build \
+          -t ${{ steps.meta.outputs.image }}:latest \
+          -t ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }} \
+          -f docker/Dockerfile .
+
+      - name: Push Image
+        #push to GHCR
+        run: |
+          docker push ${{ steps.meta.outputs.image }}:latest
+          docker push ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+
+      - name: Deploy
+        uses: appleboy/ssh-action@1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/pterodactyl-discord-bot
+            docker compose pull
+            docker compose up -d --force-recreate
