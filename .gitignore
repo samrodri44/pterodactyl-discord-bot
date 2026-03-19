@@ -10,3 +10,4 @@ docker-data/
 .DS_Store
 Thumbs.db
 pyproject.toml
+project_description.txt
