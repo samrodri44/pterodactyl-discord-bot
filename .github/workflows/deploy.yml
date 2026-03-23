@@ -73,7 +73,7 @@ jobs:
           Host ${VPS_HOST}
             User ${VPS_USER}
             IdentityFile ~/.ssh/id_ed25519
-            ProxyCommand /usr/local/bin/cloudflared access ssh --hostname ${VPS_HOST} --service-token-id ${CF_ACCESS_CLIENT_ID} --service-token-secret ${CF_ACCESS_CLIENT_SECRET}
+            ProxyCommand /usr/local/bin/cloudflared access ssh --hostname ${CF_HOSTNAME} --service-token-id ${CF_ACCESS_CLIENT_ID} --service-token-secret ${CF_ACCESS_CLIENT_SECRET}
             StrictHostKeyChecking no
           EOF
 
