@@ -62,11 +62,21 @@ jobs:
           CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          echo "${DEPLOY_SSH_KEY}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+
+          echo "Testing Cloudflare Access Handshake..."
+          /usr/bin/cloudflared access ssh --hostname ${VPS_HOST} --service-token-id "${CF_ACCESS_CLIENT_ID}" --service-token-secret "${CF_ACCESS_CLIENT_SECRET}" --log-level debug &
+
+          # Give it a second to try and connect, then kill it
+          SLEEP_PID=$!
+          sleep 5
+          kill $SLEEP_PID || true
+          echo "Handshake test complete. Check logs above for 'bad handshake' or 'connected'."
 
           cat >>~/.ssh/config <<EOF
           Host ${VPS_HOST}
@@ -88,4 +98,4 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           #ssh ${VPS_USER}@${VPS_HOST} "cd /opt/pterodactyl-discord-bot && docker compose pull && docker compose up -d --force-recreate"
-          ssh ${VPS_USER}@${VPS_HOST} "cd /opt/pterodactyl-discord-bot && cat docker-compose.yml" -v
+          ssh -vvv ${VPS_USER}@${VPS_HOST} "cd /opt/pterodactyl-discord-bot && cat docker-compose.yml"
