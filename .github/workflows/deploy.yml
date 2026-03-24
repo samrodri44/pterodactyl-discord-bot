@@ -70,7 +70,7 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
 
           echo "Testing Cloudflare Access Handshake..."
-          /usr/bin/cloudflared access ssh --hostname ${VPS_HOST} --service-token-id "${CF_ACCESS_CLIENT_ID}" --service-token-secret "${CF_ACCESS_CLIENT_SECRET}" --log-level debug &
+          /usr/bin/cloudflared access tcp -vvv --hostname ${VPS_HOST} --service-token-id "${CF_ACCESS_CLIENT_ID}" --service-token-secret "${CF_ACCESS_CLIENT_SECRET}" --log-level debug &
 
           # Give it a second to try and connect, then kill it
           SLEEP_PID=$!
