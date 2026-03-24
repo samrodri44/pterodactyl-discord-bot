@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   discord-bot:
     image: ghcr.io/samrodri44/pterodactyl-discord-bot:latest
