@@ -87,4 +87,4 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           #ssh ${VPS_USER}@${VPS_HOST} "cd /opt/pterodactyl-discord-bot && docker compose pull && docker compose up -d --force-recreate"
-          ssh ${VPS_USER}@${VPS_HOST} "cd /opt/pterodactyl-discord-bot && cat docker-compose.yml"
+          ssh ${VPS_USER}@${VPS_HOST} "cd /opt/pterodactyl-discord-bot && cat docker-compose.yml" -v
