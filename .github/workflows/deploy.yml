@@ -60,20 +60,21 @@ jobs:
         env:
           CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
           CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          echo "${DEPLOY_SSH_KEY}" > ~/.ssh/id_ed25519
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+
           cat >>~/.ssh/config <<EOF
           Host ${VPS_HOST}
             User ${VPS_USER}
             IdentityFile ~/.ssh/id_ed25519
-            ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h --service-token-id "${CF_ACCESS_CLIENT_ID}" --service-token-secret "${CF_ACCESS_CLIENT_SECRET}" --log-level debug
             StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            ProxyCommand /usr/bin/cloudflared access ssh --hostname %h --service-token-id ${CF_ACCESS_CLIENT_ID} --service-token-secret ${CF_ACCESS_CLIENT_SECRET} --log-level debug
           EOF
 
       - name: Debug SSH Config
