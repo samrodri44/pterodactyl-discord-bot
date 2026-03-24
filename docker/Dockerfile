@@ -27,4 +27,4 @@ RUN pip install --upgrade pip \
 COPY . .
  
 # Default command
-CMD ["python","main.py","run"]
+CMD ["python","src/bot/main.py","run"]
