@@ -72,14 +72,19 @@ jobs:
           Host ${VPS_HOST}
             User ${VPS_USER}
             IdentityFile ~/.ssh/id_ed25519
-            ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h --service-token-id ${CF_ACCESS_CLIENT_ID} --service-token-secret ${CF_ACCESS_CLIENT_SECRET} --log-level debug
+            ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h --service-token-id "${CF_ACCESS_CLIENT_ID}" --service-token-secret "${CF_ACCESS_CLIENT_SECRET}" --log-level debug
             StrictHostKeyChecking no
           EOF
 
-      - name: Deploy
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-        run: |
-          #ssh ${VPS_USER}@${VPS_HOST} "cd /opt/pterodactyl-discord-bot && docker compose pull && docker compose up -d --force-recreate"
-          ssh ${VPS_USER}@${VPS_HOST} "cd /opt/pterodactyl-discord-bot && cat docker-compose.yml"
+        - name: Debug SSH Config
+          run: |
+            # This will show the config structure without revealing the full secret
+            cat ~/.ssh/config | sed 's/secret .*/secret [REDACTED]/'
+
+        - name: Deploy
+          env:
+            VPS_HOST: ${{ secrets.VPS_HOST }}
+            VPS_USER: ${{ secrets.VPS_USER }}
+          run: |
+            #ssh ${VPS_USER}@${VPS_HOST} "cd /opt/pterodactyl-discord-bot && docker compose pull && docker compose up -d --force-recreate"
+            ssh ${VPS_USER}@${VPS_HOST} "cd /opt/pterodactyl-discord-bot && cat docker-compose.yml"
