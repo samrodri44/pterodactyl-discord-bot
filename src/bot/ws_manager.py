@@ -6,24 +6,25 @@ from datetime import datetime
 import requests
 import websockets
 from dotenv import load_dotenv
-
-from snapshot import Snapshot
+from models import Snapshot
 
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL_PANEL")
 SERVER_ID = os.getenv("SERVER")
 API_KEY = os.getenv("API_KEY")
+DEV_TOKEN = os.getenv("DEV_TOKEN")
 
 
 class PterodactylWS:
     def __init__(self):
         self.ws = None
-        self.queue = asyncio.Queue()
+        self.outbound = asyncio.Queue()
         # self.task = None
         self.snapshot = Snapshot()
 
     # Run the daemon
     async def run(self):
+        print("Starting ws manager...")
         while True:
             try:
                 await self.connect()
@@ -51,10 +52,17 @@ class PterodactylWS:
             "Accept": "Application/vnd.pterodactyl.v1+json",
         }
 
+        if DEV_TOKEN:
+            print("Dev Token detected. Adding dev token header to request")
+            headers["X-Dev-Token"] = f"{DEV_TOKEN}"
+
         print("Requesting new JWT token")
-        response = requests.get(
-            f"{BASE_URL}/api/client/servers/{SERVER_ID}/websocket", headers=headers
-        )
+        if BASE_URL:
+            response = requests.get(
+                f"{BASE_URL}/api/client/servers/{SERVER_ID}/websocket", headers=headers
+            )
+        else:
+            print("no value in baseurl")
 
         data = response.json()["data"]
         socket_url = data["socket"]
@@ -69,12 +77,16 @@ class PterodactylWS:
 
     # Connect to the websocket
     async def connect(self):
+        print("Establishing connection...")
         socket_url, token = self.get_jwt()
-
         additional_headers = {
             "Authorization": f"Bearer {token}",
             "Origin": f"{BASE_URL}",
         }
+
+        if DEV_TOKEN:
+            print("Dev token detected. Adding dev token header to request.")
+            additional_headers["X-Dev-Token"] = f"{DEV_TOKEN}"
 
         self.ws = await websockets.connect(
             socket_url, additional_headers=additional_headers
@@ -122,13 +134,11 @@ class PterodactylWS:
                     print(args)
 
                     # TODO:Handle output
-                    # Player connected:
-                    # Player disconnected:
-                    # There are xx/xx players online:
+                    # Try regex handling
                     if len(args) >= 30 and args[25:30] == "INFO]":
                         if "Player Spawned:" in args or "Player disconnected:" in args:
                             print("Player Count Changed")
-                            asyncio.sleep(1)
+                            await asyncio.sleep(1)
                             await self.list_players()
                         elif "There are " in args and "players online:" in args:
                             content, _ = args[41:46].split(" ")
@@ -171,7 +181,7 @@ class PterodactylWS:
     # Send messages
     async def produce(self):
         while True:
-            message = await self.queue.get()
+            message = await self.outbound.get()
             print(f"Sending message with event: {message['event']}.")
             await self.ws.send(json.dumps(message))
 
@@ -181,30 +191,32 @@ class PterodactylWS:
             "event": "set state",
             "args": ["start"],
         }
-        await self.queue.put(start)
+        await self.outbound.put(start)
         print("Queueing start command...")
 
     # Stop the server
     async def stop(self):
         if self.snapshot.player_count != 0:
+            print("Cannot stop server right now, there are players online")
             return False
 
         stop = {
             "event": "set state",
             "args": ["stop"],
         }
-        await self.queue.put(stop)
-        print("Queueing start command...")
+        await self.outbound.put(stop)
+        print("Queueing stop command...")
 
         return True
 
+    # Query players' list
     async def list_players(self):
         command = {
             "event": "send command",
             "args": ["list"],
         }
+        await self.outbound.put(command)
         print("Queueing list command")
-        await self.queue.put(command)
 
 
 # For testing

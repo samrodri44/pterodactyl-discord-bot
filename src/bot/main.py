@@ -4,8 +4,7 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-
-from api import PterodactylWS
+from ws_manager import PterodactylWS
 
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
@@ -39,17 +38,6 @@ async def on_member_join(member):
     await member.send(f"Welcome to the server {member.name}")
 
 
-@bot.event
-async def on_message(message):
-    if message.author == bot.user:
-        return
-
-    if "shit" in message.content.lower():
-        await message.channel.send(f"{message.author.mention} - don't use that word!")
-
-    await bot.process_commands(message)
-
-
 # COMMANDS:
 #
 # Say Hello
@@ -67,7 +55,6 @@ async def hello(ctx):
 async def dev_command(ctx):
     print(f"Dev command called, the author is {ctx.author.name}")
     await ctx.send("Welcome back Mr. Stark")
-    await ctx.send(ws_manager.queue.qsize())
 
 
 @dev_command.error
@@ -83,9 +70,9 @@ async def dev_command_error(ctx, error):
 @bot.command(help="Start the server")
 @commands.has_role(member_role)
 async def start(ctx):
-    # TODO: Implement
     await ws_manager.start()
     await ctx.send("Server is starting...")
+    # TODO: Implement command life cycle
 
 
 @start.error
@@ -107,16 +94,7 @@ async def stop(ctx):
         await ctx.send("Sent stop signal")
     else:
         await ctx.send("There's at least one player connected")
-    # TODO:Implement
-    # Get me and send message for me to close the server
-    """
-    me = ctx.guild.get_member_named(dev)
-    print(f"The dev is {me}")
-    await ctx.send(
-        f"{me.mention}! Please close the server! And implement this feature while you're at it!"
-    )
-    await me.send(f"{prefix}stop")
-    """
+    # TODO:Implement command life cycle
 
 
 @stop.error
