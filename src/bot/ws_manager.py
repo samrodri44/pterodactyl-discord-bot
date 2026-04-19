@@ -18,9 +18,11 @@ DEV_TOKEN = os.getenv("DEV_TOKEN")
 class PterodactylWS:
     def __init__(self):
         self.ws = None
-        self.outbound = asyncio.Queue()
+        self.command_queue = asyncio.Queue()
         # self.task = None
         self.snapshot = Snapshot()
+        self.event_queue = asyncio.Queue()
+        self.waiters = {}
 
     # Run the daemon
     async def run(self):
@@ -181,7 +183,7 @@ class PterodactylWS:
     # Send messages
     async def produce(self):
         while True:
-            message = await self.outbound.get()
+            message = await self.command_queue.get()
             print(f"Sending message with event: {message['event']}.")
             await self.ws.send(json.dumps(message))
 
@@ -191,7 +193,7 @@ class PterodactylWS:
             "event": "set state",
             "args": ["start"],
         }
-        await self.outbound.put(start)
+        await self.command_queue.put(start)
         print("Queueing start command...")
 
     # Stop the server
@@ -204,7 +206,7 @@ class PterodactylWS:
             "event": "set state",
             "args": ["stop"],
         }
-        await self.outbound.put(stop)
+        await self.command_queue.put(stop)
         print("Queueing stop command...")
 
         return True
@@ -215,7 +217,7 @@ class PterodactylWS:
             "event": "send command",
             "args": ["list"],
         }
-        await self.outbound.put(command)
+        await self.command_queue.put(command)
         print("Queueing list command")
 
 
