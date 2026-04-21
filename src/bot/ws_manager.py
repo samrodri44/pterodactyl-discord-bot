@@ -162,9 +162,12 @@ class PterodactylWS:
                         try:
                             self.event_queue.put_nowait(server_event)
                         except Exception as e:
-                            print(e)
-                            print("Event queue is full...")
-                            #TODO:Clear the queue when full
+                            print(f"Error here: {str(e)}")
+                            if self.event_queue.full():
+                                print(f"Queue size is {self.event_queue.qsize()}")
+                                print("Event queue is full, clearing...")
+                                self.empty_queue(self.event_queue)
+                                print(f"Queue size is now {self.event_queue.qsize()}")
                     elif args == "running":
                         await self.list_players()
                         server_event = ServerEvent(event_type="server_started", status=args, player_count=self.snapshot.player_count)
@@ -172,9 +175,12 @@ class PterodactylWS:
                         try:
                             self.event_queue.put_nowait(server_event)
                         except Exception as e:
-                            print(e)
-                            print("Event queue is full...")
-                            #TODO:Clear the queue when full
+                            print(f"Error here: {str(e)}")
+                            if self.event_queue.full():
+                                print(f"Queue size is {self.event_queue.qsize()}")
+                                print("Event queue is full, clearing...")
+                                self.empty_queue(self.event_queue)
+                                print(f"Queue size is now {self.event_queue.qsize()}")
                     print("Server is now", args)
                 elif event == "auth success":
                     print("Authentication Successful")
@@ -235,6 +241,11 @@ class PterodactylWS:
         }
         await self.command_queue.put(command)
         print("Queueing list command")
+
+    # Clear an asyncio.Queue
+    def empty_queue(self, queue):
+        while not queue.empty():
+            queue.get_nowait()
 
 
 # For testing
