@@ -6,7 +6,7 @@ from datetime import datetime
 import requests
 import websockets
 from dotenv import load_dotenv
-from models import Snapshot
+from models import Snapshot, ServerEvent
 
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL_PANEL")
@@ -18,10 +18,10 @@ DEV_TOKEN = os.getenv("DEV_TOKEN")
 class PterodactylWS:
     def __init__(self):
         self.ws = None
-        self.command_queue = asyncio.Queue()
+        self.command_queue = asyncio.Queue(10)
         # self.task = None
         self.snapshot = Snapshot()
-        self.event_queue = asyncio.Queue()
+        self.event_queue = asyncio.Queue(10)
         self.waiters = {}
 
     # Run the daemon
@@ -157,8 +157,24 @@ class PterodactylWS:
                     if args == "offline":
                         self.snapshot.player_count = 0
                         self.snapshot.uptime = 0
+                        server_event = ServerEvent(event_type="server_stopped", status=args, player_count=self.snapshot.player_count)
+                        #TODO:Implement a consumer for the event_queue
+                        try:
+                            self.event_queue.put_nowait(server_event)
+                        except Exception as e:
+                            print(e)
+                            print("Event queue is full...")
+                            #TODO:Clear the queue when full
                     elif args == "running":
                         await self.list_players()
+                        server_event = ServerEvent(event_type="server_started", status=args, player_count=self.snapshot.player_count)
+                        #TODO:Implement a consumer for the event_queue
+                        try:
+                            self.event_queue.put_nowait(server_event)
+                        except Exception as e:
+                            print(e)
+                            print("Event queue is full...")
+                            #TODO:Clear the queue when full
                     print("Server is now", args)
                 elif event == "auth success":
                     print("Authentication Successful")

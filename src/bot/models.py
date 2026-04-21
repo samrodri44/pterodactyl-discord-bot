@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from datetime import datetime
+import uuid
 
 
 @dataclass
@@ -12,7 +14,7 @@ class Snapshot:
 @dataclass
 class ServerEvent:
     event_type: str
-    correlation_id: str | None
-    status: str
-    player_count: int
-    timestamp: datetime
+    correlation_id: str = uuid.uuid4()
+    status: str = "unknown"
+    player_count: int = 0
+    timestamp: datetime = datetime.now()
