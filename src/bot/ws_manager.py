@@ -161,7 +161,7 @@ class PterodactylWS:
                         #TODO:Implement a consumer for the event_queue
                         try:
                             self.event_queue.put_nowait(server_event)
-                        except Exception as e:
+                        except asyncio.QueueFull as e:
                             print(f"Error here: {str(e)}")
                             if self.event_queue.full():
                                 print(f"Queue size is {self.event_queue.qsize()}")
@@ -176,7 +176,7 @@ class PterodactylWS:
                         #TODO:Implement a consumer for the event_queue
                         try:
                             self.event_queue.put_nowait(server_event)
-                        except Exception as e:
+                        except asyncio.QueueFull as e:
                             print(f"Error here: {str(e)}")
                             if self.event_queue.full():
                                 print(f"Queue size is {self.event_queue.qsize()}")
@@ -215,6 +215,12 @@ class PterodactylWS:
 
     # Start the server
     async def start(self):
+        if "server_started" in self.waiters:
+            print("Cannot sent start command, server is already starting...")
+            return False
+
+        self.waiters["server_started"] = asyncio.get_running_loop().create_future()
+
         start = {
             "event": "set state",
             "args": ["start"],
@@ -222,11 +228,15 @@ class PterodactylWS:
         await self.command_queue.put(start)
         print("Queueing start command...")
 
+        return True
+
     # Stop the server
     async def stop(self):
-        if self.snapshot.player_count != 0:
+        if self.snapshot.player_count != 0 or "server_stopped" in self.waiters:
             print("Cannot stop server right now, there are players online")
             return False
+
+        self.waiters["server_started"] = asyncio.get_running_loop().create_future()
 
         stop = {
             "event": "set state",

@@ -70,8 +70,12 @@ async def dev_command_error(ctx, error):
 @bot.command(help="Start the server")
 @commands.has_role(member_role)
 async def start(ctx):
-    await ws_manager.start()
-    await ctx.send("Server is starting...")
+    sent = await ws_manager.start()
+
+    if sent:
+        await ctx.send("Server is starting...")
+    else:
+        await ctx.send("Server is already starting...")
     # TODO: Implement command life cycle
 
 
@@ -91,9 +95,9 @@ async def stop(ctx):
     sent = await ws_manager.stop()
 
     if sent:
-        await ctx.send("Sent stop signal")
+        await ctx.send("Server is stopping...")
     else:
-        await ctx.send("There's at least one player connected")
+        await ctx.send("Sorry! There's at least one player connected, or the server is already stopping.")
     # TODO:Implement command life cycle
 
 
