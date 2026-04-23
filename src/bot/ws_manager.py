@@ -6,7 +6,7 @@ from datetime import datetime
 import requests
 import websockets
 from dotenv import load_dotenv
-from models import Snapshot, ServerEvent
+from models import Snapshot, ServerEvent, EventType
 
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL_PANEL")

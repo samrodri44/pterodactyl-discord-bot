@@ -20,8 +20,6 @@ class ServerEvent:
     player_count: int = 0
     timestamp: datetime = datetime.now()
 
-@dataclass
 class EventType(StrEnum):
     SERVER_STARTED = "server_started"
     SERVER_STOPPED = "server_stopped"
-    UNKNOWN = auto()
