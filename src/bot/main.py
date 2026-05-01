@@ -1,5 +1,6 @@
 import logging
 import os
+import asyncio
 
 import discord
 from discord.ext import commands
@@ -70,13 +71,24 @@ async def dev_command_error(ctx, error):
 @bot.command(help="Start the server")
 @commands.has_role(member_role)
 async def start(ctx):
-    sent = await ws_manager.start()
+    if ws_manager.snapshot.status != "running":
+        sent = await ws_manager.start()
 
-    if sent:
-        await ctx.send("Server is starting...")
+        if sent:
+            await ctx.send("Server is starting...")
+            try:
+                await asyncio.wait_for(ws_manager.waiters["server_started"], timeout=120.0)
+                await ctx.send("Server is now online ✅")
+                print(ws_manager.waiters)
+                ws_manager.waiters.pop("server_started")
+                print(ws_manager.waiters)
+            except Exception as e:
+                print(e)
+                await ctx.send("There was an error trying to start the server")
+        else:
+            await ctx.send("Server is already starting...")
     else:
-        await ctx.send("Server is already starting...")
-    # TODO: Implement command life cycle
+        await ctx.send("Server is already online ✅")
 
 
 @start.error

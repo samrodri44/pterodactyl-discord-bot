@@ -158,13 +158,15 @@ class PterodactylWS:
                     if args == "offline":
                         self.snapshot.player_count = 0
                         self.snapshot.uptime = 0
-                        server_event = ServerEvent(event_type=EventType.SERVER_STARTED, status=args, player_count=self.snapshot.player_count)
+                        server_event = ServerEvent(event_type=EventType.SERVER_STOPPED, status=args, player_count=self.snapshot.player_count)
                     elif args == "running":
                         await self.list_players()
-                        server_event = ServerEvent(event_type=EventType.SERVER_STOPPED, status=args, player_count=self.snapshot.player_count)
+                        server_event = ServerEvent(event_type=EventType.SERVER_STARTED, status=args, player_count=self.snapshot.player_count)
 
                     #TODO:Implement a consumer for the event_queue
                     if server_event:
+                        print("Server_event produced, sending to event_queue and waiters")
+
                         try: # If event_queue full, clear it and add the new event
                             self.event_queue.put_nowait(server_event)
                         except asyncio.QueueFull as e:
@@ -177,10 +179,18 @@ class PterodactylWS:
                                 self.event_queue.put_nowait(server_event)
 
                         # Waiters resolution
-                        if server_event.event_type in self.waiters():
+                        print("checking waiters dict for matching future")
+                        if server_event.event_type in self.waiters:
+                            print(f"Event {server_event.event_type} in waiters")
                             future = self.waiters[server_event.event_type]
                             if not future.done() and not future.cancelled(): # Future checking
+                                print("resolving future")
                                 future.set_result(server_event) # Future resolving
+                                print("future resolved")
+                            else:
+                                print("Future is already done or been cancelled")
+                        else:
+                            print("No matching future in waiters dict")
                     print("Server is now", args)
                 elif event == "auth success":
                     print("Authentication Successful")
@@ -212,6 +222,7 @@ class PterodactylWS:
     # Start the server
     async def start(self):
         if "server_started" in self.waiters:
+            print(self.waiters)
             print("Cannot sent start command, server is already starting...")
             return False
 
@@ -232,7 +243,7 @@ class PterodactylWS:
             print("Cannot stop server right now, there are players online")
             return False
 
-        self.waiters["server_started"] = asyncio.get_running_loop().create_future()
+        self.waiters["server_stopped"] = asyncio.get_running_loop().create_future()
 
         stop = {
             "event": "set state",
