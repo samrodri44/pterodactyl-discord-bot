@@ -159,14 +159,13 @@ class PterodactylWS:
                         self.snapshot.player_count = 0
                         self.snapshot.uptime = 0
                         server_event = ServerEvent(event_type=EventType.SERVER_STARTED, status=args, player_count=self.snapshot.player_count)
-                        #TODO:Implement a consumer for the event_queue
                     elif args == "running":
                         await self.list_players()
                         server_event = ServerEvent(event_type=EventType.SERVER_STOPPED, status=args, player_count=self.snapshot.player_count)
-                        #TODO:Implement a consumer for the event_queue
 
+                    #TODO:Implement a consumer for the event_queue
                     if server_event:
-                        try:
+                        try: # If event_queue full, clear it and add the new event
                             self.event_queue.put_nowait(server_event)
                         except asyncio.QueueFull as e:
                             print(f"Error here: {str(e)}")
@@ -175,10 +174,13 @@ class PterodactylWS:
                                 print("Event queue is full, clearing...")
                                 self.empty_queue(self.event_queue)
                                 print(f"Queue size is now {self.event_queue.qsize()}")
+                                self.event_queue.put_nowait(server_event)
+
+                        # Waiters resolution
                         if server_event.event_type in self.waiters():
-                            future = self.waiter[server_event.event_type]
-                            if not future.done() and not future.cancelled():
-                                future.set_result(server_event)
+                            future = self.waiters[server_event.event_type]
+                            if not future.done() and not future.cancelled(): # Future checking
+                                future.set_result(server_event) # Future resolving
                     print("Server is now", args)
                 elif event == "auth success":
                     print("Authentication Successful")
