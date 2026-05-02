@@ -172,23 +172,21 @@ class PterodactylWS:
                         except asyncio.QueueFull as e:
                             print(f"Error here: {str(e)}")
                             if self.event_queue.full():
-                                print(f"Queue size is {self.event_queue.qsize()}")
                                 print("Event queue is full, clearing...")
                                 self.empty_queue(self.event_queue)
-                                print(f"Queue size is now {self.event_queue.qsize()}")
+                                print(f"Event queue is now empty")
                                 self.event_queue.put_nowait(server_event)
 
                         # Waiters resolution
-                        print("Checking waiters dict for matching future")
+                        print("Checking waiters dict for matching future...")
                         if server_event.event_type in self.waiters:
                             print(f"Event {server_event.event_type} in waiters")
                             future = self.waiters[server_event.event_type]
                             if not future.done() and not future.cancelled(): # Future checking
-                                print("Resolving future")
                                 future.set_result(server_event) # Future resolving
                                 print("Future resolved")
                             else:
-                                print("Future is already done or been cancelled")
+                                print("Future is already done or has been cancelled")
                         else:
                             print("No matching future in waiters dict")
                     print("Server is now", args)
@@ -216,17 +214,16 @@ class PterodactylWS:
     async def produce(self):
         while True:
             message = await self.command_queue.get()
-            print(f"Sending message with event: {message['event']}.")
+            print(f"Sending message with event: {message['event']}")
             await self.ws.send(json.dumps(message))
 
     # Start the server
     async def start(self):
-        if "server_started" in self.waiters:
-            print(self.waiters)
+        if EventType.SERVER_STARTED in self.waiters:
             print("Cannot sent start command, server is already starting...")
             return False
 
-        self.waiters["server_started"] = asyncio.get_running_loop().create_future()
+        self.waiters[EventType.SERVER_STARTED] = asyncio.get_running_loop().create_future()
 
         start = {
             "event": "set state",
@@ -239,11 +236,11 @@ class PterodactylWS:
 
     # Stop the server
     async def stop(self):
-        if self.snapshot.player_count != 0 or "server_stopped" in self.waiters:
+        if self.snapshot.player_count != 0 or EventType.SERVER_STOPPED in self.waiters:
             print("Cannot stop server right now, there are players online")
             return False
 
-        self.waiters["server_stopped"] = asyncio.get_running_loop().create_future()
+        self.waiters[EventType.SERVER_STOPPED] = asyncio.get_running_loop().create_future()
 
         stop = {
             "event": "set state",

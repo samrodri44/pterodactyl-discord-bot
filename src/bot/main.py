@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 from ws_manager import PterodactylWS
+from models import EventType
 
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
@@ -23,6 +24,7 @@ intents.members = True
 bot = commands.Bot(command_prefix=f"{prefix}", intents=intents)
 ws_manager = PterodactylWS()
 
+START_STOP_TIMEOUT = 120.0
 
 # Start the ws_daemon
 @bot.event
@@ -77,14 +79,12 @@ async def start(ctx):
         if sent:
             await ctx.send("Server is starting...")
             try:
-                await asyncio.wait_for(ws_manager.waiters["server_started"], timeout=120.0)
+                await asyncio.wait_for(ws_manager.waiters[EventType.SERVER_STARTED], timeout=START_STOP_TIMEOUT)
                 await ctx.send("Server is now online ✅")
-                print(ws_manager.waiters)
-                ws_manager.waiters.pop("server_started")
-                print(ws_manager.waiters)
+                ws_manager.waiters.pop(EventType.SERVER_STARTED)
             except Exception as e:
-                print(e)
-                await ctx.send("There was an error trying to start the server.")
+                print(f"Error here {e}")
+                await ctx.send("There was an error trying to start the server")
         else:
             await ctx.send("Server is already starting...")
     else:
@@ -110,15 +110,14 @@ async def stop(ctx):
         if sent:
             await ctx.send("Server is stopping...")
             try:
-                await asyncio.wait_for(ws_manager.waiters["server_stopped"], timeout=120.0)
+                await asyncio.wait_for(ws_manager.waiters[EventType.SERVER_STOPPED], timeout=START_STOP_TIMEOUT)
                 await ctx.send("Server is now offline 🔴")
-                print(ws_manager.waiters)
-                ws_manager.waiters.pop("server_stopped")
-                print(ws_manager.waiters)
+                ws_manager.waiters.pop(EventType.SERVER_STOPPED)
             except Exception as e:
-                await ctx.send("There was an error trying to stop the server.")
+                print(f"Error here: {e}")
+                await ctx.send("There was an error trying to stop the server")
         else:
-            await ctx.send("Sorry! There's at least one player connected, or the server is already stopping.")
+            await ctx.send("Sorry! There's at least one player connected, or the server is already stopping")
     else:
         await ctx.send("Server is already offline 🔴")
 
