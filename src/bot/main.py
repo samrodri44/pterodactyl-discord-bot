@@ -111,7 +111,7 @@ async def stop(ctx):
             await ctx.send("Server is stopping...")
             try:
                 await asyncio.wait_for(ws_manager.waiters["server_stopped"], timeout=120.0)
-                await ctx.send("Server is now online 🔴")
+                await ctx.send("Server is now offline 🔴")
                 print(ws_manager.waiters)
                 ws_manager.waiters.pop("server_stopped")
                 print(ws_manager.waiters)
