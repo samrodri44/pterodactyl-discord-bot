@@ -84,7 +84,7 @@ async def start(ctx):
                 print(ws_manager.waiters)
             except Exception as e:
                 print(e)
-                await ctx.send("There was an error trying to start the server")
+                await ctx.send("There was an error trying to start the server.")
         else:
             await ctx.send("Server is already starting...")
     else:
@@ -104,13 +104,23 @@ async def start_error(ctx, error):
 @bot.command(help="Stop the server (under development)")
 @commands.has_role(member_role)
 async def stop(ctx):
-    sent = await ws_manager.stop()
+    if ws_manager.snapshot.status != "offline":
+        sent = await ws_manager.stop()
 
-    if sent:
-        await ctx.send("Server is stopping...")
+        if sent:
+            await ctx.send("Server is stopping...")
+            try:
+                await asyncio.wait_for(ws_manager.waiters["server_stopped"], timeout=120.0)
+                await ctx.send("Server is now online 🔴")
+                print(ws_manager.waiters)
+                ws_manager.waiters.pop("server_stopped")
+                print(ws_manager.waiters)
+            except Exception as e:
+                await ctx.send("There was an error trying to stop the server.")
+        else:
+            await ctx.send("Sorry! There's at least one player connected, or the server is already stopping.")
     else:
-        await ctx.send("Sorry! There's at least one player connected, or the server is already stopping.")
-    # TODO:Implement command life cycle
+        await ctx.send("Server is already offline 🔴")
 
 
 @stop.error

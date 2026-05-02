@@ -179,14 +179,14 @@ class PterodactylWS:
                                 self.event_queue.put_nowait(server_event)
 
                         # Waiters resolution
-                        print("checking waiters dict for matching future")
+                        print("Checking waiters dict for matching future")
                         if server_event.event_type in self.waiters:
                             print(f"Event {server_event.event_type} in waiters")
                             future = self.waiters[server_event.event_type]
                             if not future.done() and not future.cancelled(): # Future checking
-                                print("resolving future")
+                                print("Resolving future")
                                 future.set_result(server_event) # Future resolving
-                                print("future resolved")
+                                print("Future resolved")
                             else:
                                 print("Future is already done or been cancelled")
                         else:
