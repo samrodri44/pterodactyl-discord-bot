@@ -81,10 +81,10 @@ async def start(ctx):
             try:
                 await asyncio.wait_for(ws_manager.waiters[EventType.SERVER_STARTED], timeout=START_STOP_TIMEOUT)
                 await ctx.send("Server is now online ✅")
-                ws_manager.waiters.pop(EventType.SERVER_STARTED)
             except Exception as e:
                 print(f"Error here {e}")
                 await ctx.send("There was an error trying to start the server")
+            ws_manager.waiters.pop(EventType.SERVER_STARTED)
         else:
             await ctx.send("Server is already starting...")
     else:
@@ -112,10 +112,10 @@ async def stop(ctx):
             try:
                 await asyncio.wait_for(ws_manager.waiters[EventType.SERVER_STOPPED], timeout=START_STOP_TIMEOUT)
                 await ctx.send("Server is now offline 🔴")
-                ws_manager.waiters.pop(EventType.SERVER_STOPPED)
             except Exception as e:
                 print(f"Error here: {e}")
                 await ctx.send("There was an error trying to stop the server")
+            ws_manager.waiters.pop(EventType.SERVER_STOPPED)
         else:
             await ctx.send("Sorry! There's at least one player connected, or the server is already stopping")
     else:
