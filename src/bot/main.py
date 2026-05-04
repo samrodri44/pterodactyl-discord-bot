@@ -81,10 +81,20 @@ async def start(ctx):
             try:
                 await asyncio.wait_for(ws_manager.waiters[EventType.SERVER_STARTED], timeout=START_STOP_TIMEOUT)
                 await ctx.send("Server is now online ✅")
+            except TimeoutError as e:
+                print(f"Error: {EventType.SERVER_STARTED} Timeout Error")
+                await ctx.send("Server start timed out")
+            except asyncio.TimeoutError as e:
+                print(f"Error: {EventType.SERVER_STARTED} Timeout Error")
+                await ctx.send("Server start timed out")
+            except asyncio.CancelledError as e:
+                print(f"Error: {EventType.SERVER_STARTED} future was cancelled")
+                await ctx.send("Server start was cancelled")
             except Exception as e:
                 print(f"Error here {e}")
                 await ctx.send("There was an error trying to start the server")
-            ws_manager.waiters.pop(EventType.SERVER_STARTED)
+            finally:
+                ws_manager.waiters.pop(EventType.SERVER_STARTED)
         else:
             await ctx.send("Server is already starting...")
     else:
@@ -112,10 +122,20 @@ async def stop(ctx):
             try:
                 await asyncio.wait_for(ws_manager.waiters[EventType.SERVER_STOPPED], timeout=START_STOP_TIMEOUT)
                 await ctx.send("Server is now offline 🔴")
+            except TimeoutError as e:
+                print(f"Error: {EventType.SERVER_STOPPED} Timeout Error")
+                await ctx.send("Server stop timed out")
+            except asyncio.TimeoutError as e:
+                print(f"Error: {EventType.SERVER_STOPPED} Timeout Error")
+                await ctx.send("Server stop timed out")
+            except asyncio.CancelledError as e:
+                print(f"Error: {EventType.SERVER_STOPPED} future was cancelled")
+                await ctx.send("Server stop was cancelled")
             except Exception as e:
                 print(f"Error here: {e}")
                 await ctx.send("There was an error trying to stop the server")
-            ws_manager.waiters.pop(EventType.SERVER_STOPPED)
+            finally:
+                ws_manager.waiters.pop(EventType.SERVER_STOPPED)
         else:
             await ctx.send("Sorry! There's at least one player connected, or the server is already stopping")
     else:
