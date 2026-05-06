@@ -1,10 +1,12 @@
 import logging
 import os
+import asyncio
 
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 from ws_manager import PterodactylWS
+from models import EventType
 
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
@@ -22,6 +24,7 @@ intents.members = True
 bot = commands.Bot(command_prefix=f"{prefix}", intents=intents)
 ws_manager = PterodactylWS()
 
+START_STOP_TIMEOUT = 120.0
 
 # Start the ws_daemon
 @bot.event
@@ -70,9 +73,34 @@ async def dev_command_error(ctx, error):
 @bot.command(help="Start the server")
 @commands.has_role(member_role)
 async def start(ctx):
-    await ws_manager.start()
-    await ctx.send("Server is starting...")
-    # TODO: Implement command life cycle
+    if ws_manager.snapshot.status != "running":
+        sent = await ws_manager.start()
+
+        if sent:
+            await ctx.send("Server is starting...")
+            try:
+                await asyncio.wait_for(ws_manager.waiters[EventType.SERVER_STARTED], timeout=START_STOP_TIMEOUT)
+                await ctx.send("Server is now online ✅")
+            except TimeoutError as e:
+                print(f"Error: {EventType.SERVER_STARTED} Timeout Error")
+                await ctx.send("Server start timed out")
+                await ctx.send("TimeoutError")
+            except asyncio.TimeoutError as e:
+                print(f"Error: {EventType.SERVER_STARTED} Timeout Error")
+                await ctx.send("Server start timed out")
+                await ctx.send("asyncio.TimeoutError")
+            except asyncio.CancelledError as e:
+                print(f"Error: {EventType.SERVER_STARTED} future was cancelled")
+                await ctx.send("Server start was cancelled")
+            except Exception as e:
+                print(f"Error here {e}")
+                await ctx.send("There was an error trying to start the server")
+            finally:
+                ws_manager.waiters.pop(EventType.SERVER_STARTED)
+        else:
+            await ctx.send("Server is already starting...")
+    else:
+        await ctx.send("Server is already online ✅")
 
 
 @start.error
@@ -88,13 +116,34 @@ async def start_error(ctx, error):
 @bot.command(help="Stop the server (under development)")
 @commands.has_role(member_role)
 async def stop(ctx):
-    sent = await ws_manager.stop()
+    if ws_manager.snapshot.status != "offline":
+        sent = await ws_manager.stop()
 
-    if sent:
-        await ctx.send("Sent stop signal")
+        if sent:
+            await ctx.send("Server is stopping...")
+            try:
+                await asyncio.wait_for(ws_manager.waiters[EventType.SERVER_STOPPED], timeout=START_STOP_TIMEOUT)
+                await ctx.send("Server is now offline 🔴")
+            except TimeoutError as e:
+                print(f"Error: {EventType.SERVER_STOPPED} Timeout Error")
+                await ctx.send("Server stop timed out")
+                await ctx.send("TimeoutError")
+            except asyncio.TimeoutError as e:
+                print(f"Error: {EventType.SERVER_STOPPED} Timeout Error")
+                await ctx.send("Server stop timed out")
+                await ctx.send("asyncio.TimeoutError")
+            except asyncio.CancelledError as e:
+                print(f"Error: {EventType.SERVER_STOPPED} future was cancelled")
+                await ctx.send("Server stop was cancelled")
+            except Exception as e:
+                print(f"Error here: {e}")
+                await ctx.send("There was an error trying to stop the server")
+            finally:
+                ws_manager.waiters.pop(EventType.SERVER_STOPPED)
+        else:
+            await ctx.send("Sorry! There's at least one player connected, or the server is already stopping")
     else:
-        await ctx.send("There's at least one player connected")
-    # TODO:Implement command life cycle
+        await ctx.send("Server is already offline 🔴")
 
 
 @stop.error
