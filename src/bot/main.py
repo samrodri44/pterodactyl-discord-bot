@@ -84,9 +84,11 @@ async def start(ctx):
             except TimeoutError as e:
                 print(f"Error: {EventType.SERVER_STARTED} Timeout Error")
                 await ctx.send("Server start timed out")
+                await ctx.send("TimeoutError")
             except asyncio.TimeoutError as e:
                 print(f"Error: {EventType.SERVER_STARTED} Timeout Error")
                 await ctx.send("Server start timed out")
+                await ctx.send("asyncio.TimeoutError")
             except asyncio.CancelledError as e:
                 print(f"Error: {EventType.SERVER_STARTED} future was cancelled")
                 await ctx.send("Server start was cancelled")
