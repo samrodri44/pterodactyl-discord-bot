@@ -127,9 +127,11 @@ async def stop(ctx):
             except TimeoutError as e:
                 print(f"Error: {EventType.SERVER_STOPPED} Timeout Error")
                 await ctx.send("Server stop timed out")
+                await ctx.send("TimeoutError")
             except asyncio.TimeoutError as e:
                 print(f"Error: {EventType.SERVER_STOPPED} Timeout Error")
                 await ctx.send("Server stop timed out")
+                await ctx.send("asyncio.TimeoutError")
             except asyncio.CancelledError as e:
                 print(f"Error: {EventType.SERVER_STOPPED} future was cancelled")
                 await ctx.send("Server stop was cancelled")
