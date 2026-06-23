@@ -14,13 +14,13 @@ class EventLogger:
         logger.info("Adding handler...")
         logger.addHandler(handler)
 
-    def run(self, queue):
-        #try:
-        #    while(True):
-        #except Exception:
-        #    print("logger error: {e}")
-        logger.info("running...")
-        logger.info("what is going on?")
+    async def run(self, queue):
+        try:
+            while(True):
+                message = await queue.get()
+                logger.info(f"event_type={message.event_type} status={message.status} id={message.event_id} player_count={message.player_count}")
+        except Exception:
+            print("logger error: {e}")
 
 if __name__ == "__main__":
     el = EventLogger()

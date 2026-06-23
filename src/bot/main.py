@@ -7,6 +7,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from ws_manager import PterodactylWS
 from models import EventType
+from event_logger import EventLogger
 
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
@@ -23,6 +24,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix=f"{prefix}", intents=intents)
 ws_manager = PterodactylWS()
+event_logger = EventLogger()
 
 START_STOP_TIMEOUT = 120.0
 
@@ -30,6 +32,7 @@ START_STOP_TIMEOUT = 120.0
 @bot.event
 async def on_ready():
     bot.loop.create_task(ws_manager.run())
+    bot.loop.create_task(event_logger.run(ws_manager.event_queue))
     print(f"We are ready to go in, {bot.user.name}")
 
 
