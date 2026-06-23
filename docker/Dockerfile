@@ -25,6 +25,9 @@ RUN pip install --upgrade pip \
  
 # Copy the rest of the project
 COPY . .
+-
+# Create logs directory
+RUN mkdir -p /app/logs
  
 # Default command
 CMD ["python","src/bot/main.py","run"]
