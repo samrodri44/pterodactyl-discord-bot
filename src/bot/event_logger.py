@@ -9,10 +9,7 @@ formatter = logging.Formatter(fmt="%(asctime)s | %(levelname)-8s | %(message)s",
 class EventLogger:
     def __init__(self):
         logger.setLevel(logging.INFO)
-        logger.info("Starting logger")
-        logger.info("Attaching formatter to handler")
         handler.setFormatter(formatter)
-        logger.info("Adding handler...")
         logger.addHandler(handler)
 
     async def run(self, queue):
@@ -21,5 +18,5 @@ class EventLogger:
                 message = await queue.get()
                 logger.info(f"event_type={message.event_type} status={message.status} id={message.event_id} player_count={message.player_count}")
             except Exception:
-                print("logger error: {e}")
+                print(f"Logger error: {e}")
                 await asyncio.sleep(5)
