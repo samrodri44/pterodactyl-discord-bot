@@ -8,9 +8,10 @@ formatter = logging.Formatter(fmt="%(asctime)s | %(levelname)-8s | %(message)s",
 
 class EventLogger:
     def __init__(self):
-        logger.setLevel(logging.INFO)
         handler.setFormatter(formatter)
+        logger.setLevel(logging.INFO)
         logger.addHandler(handler)
+        logger.propagate = False
 
     async def run(self, queue):
         while(True):
