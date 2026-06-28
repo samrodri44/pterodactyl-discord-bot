@@ -3,7 +3,7 @@ import json
 import os
 from datetime import datetime
 
-import requests
+import httpx
 import websockets
 from dotenv import load_dotenv
 from models import Snapshot, ServerEvent, EventType
@@ -48,7 +48,7 @@ class PterodactylWS:
                 await asyncio.sleep(5)
 
     # Get JWT token and WSS url from the panel
-    def get_jwt(self):
+    async def get_jwt(self):
         headers = {
             "Authorization": f"Bearer {API_KEY}",
             "Accept": "Application/vnd.pterodactyl.v1+json",
@@ -60,9 +60,10 @@ class PterodactylWS:
 
         print("Requesting new JWT token")
         if BASE_URL:
-            response = requests.get(
-                f"{BASE_URL}/api/client/servers/{SERVER_ID}/websocket", headers=headers
-            )
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{BASE_URL}/api/client/servers/{SERVER_ID}/websocket", headers=headers
+                )
         else:
             print("no value in baseurl")
 
@@ -80,7 +81,7 @@ class PterodactylWS:
     # Connect to the websocket
     async def connect(self):
         print("Establishing connection...")
-        socket_url, token = self.get_jwt()
+        socket_url, token = await self.get_jwt()
         additional_headers = {
             "Authorization": f"Bearer {token}",
             "Origin": f"{BASE_URL}",
