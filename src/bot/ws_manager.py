@@ -200,7 +200,7 @@ class PterodactylWS:
                     or event == "token expired"
                 ):  # If token expires, refresh
                     print("Received: Event: ", event)
-                    _, token = self.get_jwt()
+                    _, token = await self.get_jwt()
                     await self.authenticate(token)
                 else:
                     args = data["args"][0]
