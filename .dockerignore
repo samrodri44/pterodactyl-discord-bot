@@ -4,3 +4,9 @@ docker/
 .gitignore
 README.md
 *.log
+docs/
+logs/
+tests/
+project_description.txt
+placeholder.py
+pyproject.toml
